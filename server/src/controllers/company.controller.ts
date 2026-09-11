@@ -11,6 +11,6 @@ export async function searchCompany(req: AuthenticatedRequest, res: Response) {
 
 export async function getCompany(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
-  const details = await getCompanyDetails(req.params.id, req.user.userId);
+  const details = await getCompanyDetails(String(req.params.id), req.user.userId);
   res.json(details);
 }

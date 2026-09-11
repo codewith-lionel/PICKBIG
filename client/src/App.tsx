@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import type { ReactNode } from "react";
 import { AppLayout } from "./layouts/AppLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ResumePage } from "./pages/ResumePage";
@@ -12,7 +13,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { useAuth } from "./hooks/useAuth";
 
-function ProtectedRoute({ children, authenticated }: { children: JSX.Element; authenticated: boolean }) {
+function ProtectedRoute({ children, authenticated }: { children: ReactNode; authenticated: boolean }) {
   if (!authenticated) {
     return <Navigate to="/login" replace />;
   }

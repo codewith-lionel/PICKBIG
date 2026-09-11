@@ -44,7 +44,7 @@ export async function searchAndStoreJobs(userId: string) {
       }
     });
 
-    if (exists || [JobStatus.APPLIED, JobStatus.REJECTED, JobStatus.CLOSED].includes(exists?.status ?? JobStatus.NEW)) {
+    if (exists) {
       filtered += 1;
       continue;
     }

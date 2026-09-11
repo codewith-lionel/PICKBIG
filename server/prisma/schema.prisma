@@ -32,6 +32,7 @@ model User {
   updatedAt     DateTime           @updatedAt
   resumes       Resume[]
   profile       ResumeProfile?
+  jobMatches    JobMatch[]
   applications  Application[]
   searchPref    SearchPreference?
   savedJobs     SavedJob[]

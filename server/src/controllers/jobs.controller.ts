@@ -15,14 +15,14 @@ export async function searchJobs(req: AuthenticatedRequest, res: Response) {
 export async function getJobs(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
   const jobs = await listJobs(req.user.userId, {
-    status: (req.query.status as any) || undefined
+    status: typeof req.query.status === "string" ? (req.query.status as any) : undefined
   });
   res.json(jobs);
 }
 
 export async function getJob(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
-  const job = await getJobById(req.params.id, req.user.userId);
+  const job = await getJobById(String(req.params.id), req.user.userId);
   res.json(job);
 }
 
@@ -30,7 +30,7 @@ export async function analyzeJob(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
 
   const [job, profile] = await Promise.all([
-    prisma.job.findUnique({ where: { id: req.params.id } }),
+    prisma.job.findUnique({ where: { id: String(req.params.id) } }),
     prisma.resumeProfile.findUnique({ where: { userId: req.user.userId } })
   ]);
 
@@ -78,12 +78,12 @@ export async function analyzeJob(req: AuthenticatedRequest, res: Response) {
 
 export async function shortlist(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
-  const job = await shortlistJob(req.user.userId, req.params.id);
+  const job = await shortlistJob(req.user.userId, String(req.params.id));
   res.json(job);
 }
 
 export async function updateStatus(req: AuthenticatedRequest, res: Response) {
-  const job = await updateJobStatus(req.params.id, req.body.status);
+  const job = await updateJobStatus(String(req.params.id), req.body.status);
   res.json(job);
 }
 
@@ -91,7 +91,7 @@ export async function coverLetter(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
 
   const [job, profile] = await Promise.all([
-    prisma.job.findUnique({ where: { id: req.params.id } }),
+    prisma.job.findUnique({ where: { id: String(req.params.id) } }),
     prisma.resumeProfile.findUnique({ where: { userId: req.user.userId } })
   ]);
 

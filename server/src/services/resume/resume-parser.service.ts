@@ -1,13 +1,15 @@
 import fs from "node:fs/promises";
 import mammoth from "mammoth";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import { AppError } from "../../utils/errors.js";
 
 export async function parseResumeFile(filePath: string, mimeType: string): Promise<string> {
   const buffer = await fs.readFile(filePath);
 
   if (mimeType === "application/pdf") {
-    const result = await pdf(buffer);
+    const parser = new PDFParse({ data: new Uint8Array(buffer) });
+    const result = await parser.getText();
+    await parser.destroy();
     return result.text;
   }
 

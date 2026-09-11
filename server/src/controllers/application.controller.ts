@@ -22,13 +22,13 @@ export async function getAll(req: AuthenticatedRequest, res: Response) {
 
 export async function getOne(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
-  const app = await getApplication(req.user.userId, req.params.id);
+  const app = await getApplication(req.user.userId, String(req.params.id));
   res.json(app);
 }
 
 export async function confirm(req: AuthenticatedRequest, res: Response) {
   if (!req.user) throw new AppError(401, "Authentication required");
-  const app = await confirmApplication(req.user.userId, req.params.id);
+  const app = await confirmApplication(req.user.userId, String(req.params.id));
   res.json({
     ...app,
     message: "Review application complete. Confirmed and marked as applied."
