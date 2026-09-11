@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum JobStatus {
+  NEW
+  SEEN
+  SHORTLISTED
+  APPLIED
+  REJECTED
+  CLOSED
+  EXPIRED
+}
+
+enum AppMode {
+  DISCOVER
+  PREPARE
+  APPLY
+}
+
+model User {
+  id            String             @id @default(cuid())
+  name          String
+  email         String             @unique
+  passwordHash  String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  resumes       Resume[]
+  profile       ResumeProfile?
+  jobMatches    JobMatch[]
+  applications  Application[]
+  searchPref    SearchPreference?
+  savedJobs     SavedJob[]
+  scanRuns      ScanRun[]
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String
+  fileName    String
+  fileType    String
+  fileSize    Int
+  storagePath String
+  extractedText String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ResumeProfile {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  name               String?
+  education          Json
+  skills             Json
+  experience         Json
+  projects           Json
+  certifications     Json
+  languages          Json
+  preferredRoles     Json
+  preferredLocations Json
+  experienceYears    Float    @default(0)
+  sourceResumeId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Job {
+  id                 String      @id @default(cuid())
+  company            String
+  companyWebsite     String?
+  title              String
+  description        String?
+  requirements       Json?
+  location           String
+  employmentType     String?
+  experienceRequired String?
+  technologies       Json?
+  source             String
+  sourceUrl          String
+  applicationUrl     String
+  canonicalUrl       String
+  postedDate         DateTime?
+  discoveredAt       DateTime    @default(now())
+  jobHash            String      @unique
+  status             JobStatus   @default(NEW)
+  isNew              Boolean     @default(true)
+  isRemote           Boolean     @default(false)
+  aiStatus           String      @default("PENDING")
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  matches            JobMatch[]
+  applications       Application[]
+  savedBy            SavedJob[]
+
+  @@index([canonicalUrl])
+  @@index([postedDate])
+  @@index([status])
+}
+
+model JobMatch {
+  id                     String   @id @default(cuid())
+  userId                 String
+  jobId                  String
+  matchScore             Int
+  skillMatch             Int
+  experienceMatch        Int
+  roleMatch              Int
+  locationMatch          Int
+  educationMatch         Int
+  freshnessScore         Int
+  matchingSkills         Json
+  missingSkills          Json
+  experienceRequirement  String?
+  recommendation         String
+  reason                 String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job                    Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model Application {
+  id                   String   @id @default(cuid())
+  userId               String
+  jobId                String
+  coverLetter          String?
+  applicationSummary   String?
+  generatedAnswers     Json?
+  status               String   @default("PREPARED")
+  confirmedAt          DateTime?
+  submittedAt          DateTime?
+  mode                 AppMode  @default(PREPARE)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job                  Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model SearchPreference {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  roles                 Json
+  locations             Json
+  experienceLevels      Json
+  postedWithinDays      Int      @default(7)
+  minimumMatchScore     Int      @default(70)
+  includeRemote         Boolean  @default(true)
+  includeHybrid         Boolean  @default(true)
+  includeOnsite         Boolean  @default(true)
+  updatedAt             DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JobSource {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  sourceType            String
+  isEnabled             Boolean  @default(true)
+  metadata              Json?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ScanRun {
+  id                    String   @id @default(cuid())
+  userId                String
+  mode                  AppMode  @default(DISCOVER)
+  startedAt             DateTime @default(now())
+  completedAt           DateTime?
+  status                String   @default("RUNNING")
+  jobsDiscovered        Int      @default(0)
+  jobsInserted          Int      @default(0)
+  jobsFiltered          Int      @default(0)
+  errors                Json?
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SavedJob {
+  id                    String   @id @default(cuid())
+  userId                String
+  jobId                 String
+  createdAt             DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job                   Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+}
+
+model AiCache {
+  id          String   @id @default(cuid())
+  cacheKey    String   @unique
+  payload     Json
+  model       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
