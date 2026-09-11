@@ -1,0 +1,16 @@
+{
+  "name": "@pickbig/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "echo 'No tests for shared'",
+    "lint": "echo 'No lint for shared'"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
